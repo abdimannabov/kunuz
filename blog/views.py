@@ -2,10 +2,10 @@ from django.contrib.auth import logout, login
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 
 from blog.forms import RegisterForm, LoginForm, ArticleForm, CommentForm
-from blog.models import Article
+from blog.models import Article, Comment
 
 
 # Create your views here.
@@ -44,16 +44,32 @@ class ArticleByCategory(ArticleView):
     def get_queryset(self):
         return Article.objects.filter(category_id=self.kwargs["pk"])
 
-def article_detail(request, pk):
-    article = Article.objects.get(pk=pk)
-    form = CommentForm()
+# def article_detail(request, pk):
+#     article = Article.objects.get(pk=pk)
+#     form = CommentForm()
+#
+#     context = {
+#         "title":"Detail",
+#         "article":article,
+#         "form":form
+#     }
+#     return render(request, "blog/detail.html", context)
 
-    context = {
-        "title":"Detail",
-        "article":article,
-        "form":form
+class ArticleDetail(DetailView):
+    model = Article
+    context_object_name = "article"
+    template_name = "blog/detail.html"
+    form_class = CommentForm
+    extra_context = {
+        "title":"Detail"
     }
-    return render(request, "blog/detail.html", context)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        article = Article.objects.get(pk=self.kwargs['pk'])
+        context['comments'] = Comment.objects.filter(article=article)
+        context['form'] = CommentForm()
+        return context
 
 def user_register(request):
     if request.method == "POST":
@@ -119,11 +135,11 @@ class DeleteArticle(DeleteView):
     }
 
 def save_comment(request, pk):
-    form = CommentForm(data=request.data)
+    form = CommentForm(data=request.POST)
     if form.is_valid():
         comment = form.save(commit=False)
         comment.user = request.user
-        comment.article = Article.objects.filter(pk=pk)
+        comment.article = Article.objects.get(pk=pk)
         comment.save()
     else:
         pass

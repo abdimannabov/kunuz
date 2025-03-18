@@ -32,18 +32,20 @@
                 <button class="btn btn-primary" type="submit">Send</button>
             </form>
         </div>
-        <div class="card">
+        {% for comment in comments %}
+        <div class="card mt-3">
             <div class="card-header">
-                Quote
+                {{ comment.user.username }}
             </div>
             <div class="card-body">
                 <blockquote class="blockquote mb-0">
-                    <p>A well-known quote, contained in a blockquote element.</p>
-                    <footer class="blockquote-footer">Someone famous in <cite title="Source Title">Source Title</cite>
+                    <p>{{ comment.description }}</p>
+                    <footer class="blockquote-footer"><cite title="Source Title">{{ comment.created_at }}</cite>
                     </footer>
                 </blockquote>
             </div>
         </div>
+        {% endfor %}
         {% endif %}
     </div>
 </div>
